@@ -1,4 +1,4 @@
-package parkingsites.android.com.parkingsites.service;
+package parkingsites.android.com.parkingsites.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
