@@ -20,6 +20,7 @@ public class MapsPresenter implements OnParkingSitesRequestResponse {
     private MapsView mView;
     private GoogleMap mMap;
     private List<Route> routes;
+
     public MapsPresenter() {
         Log.d("TAG", "Constructor Presenter");
     }
@@ -27,13 +28,8 @@ public class MapsPresenter implements OnParkingSitesRequestResponse {
     public void loadParkingSites(MapsView view, GoogleMap mMap) {
         this.mView = view;
         this.mMap = mMap;
-        new ParkingSitesEngine();
+        ParkingSitesEngine.getEngineInstance().getParkingSite();
     }
-
-    public void getParkingSites(){
-        new ParkingSitesEngine().getParkingSite();
-    }
-
 
     @Override
     public void onParkingsRequestSucces() {

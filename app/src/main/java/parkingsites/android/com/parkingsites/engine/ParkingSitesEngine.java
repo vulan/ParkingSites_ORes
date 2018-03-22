@@ -22,9 +22,17 @@ public class ParkingSitesEngine {
     private ApiService mApiService;
     private List<ParkingSite> mParkingSites = new ArrayList<>();
     private OnParkingSitesRequestResponse responseRequest;
+    private static ParkingSitesEngine mEngineInstance;
 
     public ParkingSitesEngine(ApiService apiService){
         this.mApiService = apiService;
+    }
+
+    public static ParkingSitesEngine getEngineInstance(){
+        if ( mEngineInstance == null ){
+            mEngineInstance = new ParkingSitesEngine();
+        }
+        return mEngineInstance;
     }
 
     public ParkingSitesEngine(){
