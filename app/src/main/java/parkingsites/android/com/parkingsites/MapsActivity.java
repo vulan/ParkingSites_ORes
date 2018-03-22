@@ -46,8 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMapPresenter.loadParkingSites(this, mMap);
-//        mMapPresenter.getParkingSites();
+        mMapPresenter.getParkingSites(this, mMap);
     }
 
 }

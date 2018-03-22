@@ -5,16 +5,6 @@ package parkingsites.android.com.parkingsites.view;
  */
 
 public interface MapsView {
-//    void showMessageOnFailure(String message);
-//
-//    void showProgressDialog();
-//
-//    void hideProgressDialog();
-//
-//    void showDetails(String[] detail);
-//
-//    void showEmptyRouteMessage();
-//
-//    void showEmptyParkingMessage();
+
 }
 

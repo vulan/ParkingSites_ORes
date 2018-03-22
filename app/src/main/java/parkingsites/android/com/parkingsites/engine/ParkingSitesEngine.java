@@ -3,7 +3,6 @@ package parkingsites.android.com.parkingsites.engine;
 import java.util.ArrayList;
 import java.util.List;
 
-import parkingsites.android.com.parkingsites.OnParkingSitesRequestResponse;
 import parkingsites.android.com.parkingsites.dagger.AppModule;
 import parkingsites.android.com.parkingsites.model.ParkingSite;
 import parkingsites.android.com.parkingsites.model.ParkingSiteSerializable;
@@ -21,11 +20,16 @@ public class ParkingSitesEngine {
 
     private ApiService mApiService;
     private List<ParkingSite> mParkingSites = new ArrayList<>();
-    private OnParkingSitesRequestResponse responseRequest;
+//    private OnParkingSitesRequestResponse responseRequest;
     private static ParkingSitesEngine mEngineInstance;
 
-    public ParkingSitesEngine(ApiService apiService){
-        this.mApiService = apiService;
+    public interface OnParkRequestResponse{
+        void onSuccessRequest();
+        void onErrorRequest();
+    }
+
+    public ParkingSitesEngine(){
+
     }
 
     public static ParkingSitesEngine getEngineInstance(){
@@ -35,19 +39,19 @@ public class ParkingSitesEngine {
         return mEngineInstance;
     }
 
-    public ParkingSitesEngine(){
+    public void loadParkingSites(final OnParkRequestResponse requestResponse){
         mApiService = AppModule.provideApiService();
         Call<ParkingSiteSerializable> siteParkingsCaller = mApiService.getParkingLocation();
         siteParkingsCaller.enqueue(new Callback<ParkingSiteSerializable>() {
             @Override
             public void onResponse(Call<ParkingSiteSerializable> call, Response<ParkingSiteSerializable> response) {
                 mParkingSites = response.body().getParkingSites();
-                responseRequest.onParkingsRequestSucces();
+                requestResponse.onSuccessRequest();
             }
 
             @Override
             public void onFailure(Call<ParkingSiteSerializable> call, Throwable t) {
-                responseRequest.onParkingsRequestError();
+                requestResponse.onErrorRequest();
             }
         });
     }
