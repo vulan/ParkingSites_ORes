@@ -3,4 +3,6 @@
     <string name="title_activity_maps">Free Parking Sites</string>
     <string name="from">From</string>
     <string name="to">To</string>
+    <string name="request_error">Request error! No parking sites found!</string>
+    <string name="route_request_error"> Request error! Could not get route information!</string>
 </resources>

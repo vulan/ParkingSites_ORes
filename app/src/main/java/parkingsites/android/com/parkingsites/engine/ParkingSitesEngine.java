@@ -20,7 +20,6 @@ public class ParkingSitesEngine {
 
     private ApiService mApiService;
     private List<ParkingSite> mParkingSites = new ArrayList<>();
-//    private OnParkingSitesRequestResponse responseRequest;
     private static ParkingSitesEngine mEngineInstance;
 
     public interface OnParkRequestResponse{

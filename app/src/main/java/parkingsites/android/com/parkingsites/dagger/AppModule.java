@@ -8,9 +8,9 @@ import com.google.gson.GsonBuilder;
 import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
-import parkingsites.android.com.parkingsites.engine.ParkingSitesEngine;
 import parkingsites.android.com.parkingsites.presenter.MapsPresenter;
 import parkingsites.android.com.parkingsites.service.ApiService;
+import parkingsites.android.com.parkingsites.service.GoogleMapsApiService;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -55,6 +55,22 @@ public class AppModule {
 
         ApiService apiService = retrofit.create(ApiService.class);
         return apiService;
+    }
+
+    @Provides
+    @Singleton
+    public static GoogleMapsApiService provideGoogleMapsApiService() {
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://maps.googleapis.com/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        GoogleMapsApiService mapsApiService = retrofit.create(GoogleMapsApiService.class);
+        return mapsApiService;
     }
 
 }

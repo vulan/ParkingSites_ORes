@@ -2,13 +2,16 @@ package parkingsites.android.com.parkingsites;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
 import javax.inject.Inject;
-
 import parkingsites.android.com.parkingsites.dagger.App;
 import parkingsites.android.com.parkingsites.presenter.MapsPresenter;
 import parkingsites.android.com.parkingsites.view.MapsView;
@@ -16,6 +19,8 @@ import parkingsites.android.com.parkingsites.view.MapsView;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, MapsView {
 
     private GoogleMap mMap;
+    private Button btnRouteDirection;
+    private EditText txtFrom, txtTo;
 
     @Inject
     MapsPresenter mMapPresenter;
@@ -31,6 +36,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        txtFrom = (EditText) findViewById(R.id.txtFrom);
+        txtTo = (EditText) findViewById(R.id.txtTo);
+        btnRouteDirection = (Button)findViewById(R.id.btnRouteInfo);
+    }
+
+    public void getRouteInfo(View view){
+        mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
     }
 
 
@@ -49,4 +62,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMapPresenter.getParkingSites(this, mMap);
     }
 
+    @Override
+    public void OnParkingErrorMessage() {
+        Toast.makeText(this, R.string.request_error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void OnRouteFetchError() {
+        Toast.makeText(this, R.string.route_request_error, Toast.LENGTH_LONG).show();
+    }
 }
