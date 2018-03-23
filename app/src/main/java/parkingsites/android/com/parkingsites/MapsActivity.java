@@ -1,10 +1,12 @@
 package parkingsites.android.com.parkingsites;
 
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -21,6 +23,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private Button btnRouteDirection;
     private EditText txtFrom, txtTo;
+    private ConstraintLayout srchRouteBox;
+    private ProgressBar prgBarSearch;
 
     @Inject
     MapsPresenter mMapPresenter;
@@ -40,6 +44,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         txtFrom = (EditText) findViewById(R.id.txtFrom);
         txtTo = (EditText) findViewById(R.id.txtTo);
         btnRouteDirection = (Button)findViewById(R.id.btnRouteInfo);
+        srchRouteBox = findViewById(R.id.searchRouteBox);
+        prgBarSearch = findViewById(R.id.prgBarSearch);
     }
 
     public void getRouteInfo(View view){
@@ -62,13 +68,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMapPresenter.getParkingSites(this, mMap);
     }
 
+
     @Override
-    public void OnParkingErrorMessage() {
-        Toast.makeText(this, R.string.request_error, Toast.LENGTH_LONG).show();
+    public void OnParksErrorMessage() {
+        Toast.makeText(this, getResources().getString(R.string.parking_request_error), Toast.LENGTH_LONG).show();
     }
 
     @Override
-    public void OnRouteFetchError() {
-        Toast.makeText(this, R.string.route_request_error, Toast.LENGTH_LONG).show();
+    public void OnRouteFetchErrorMessage() {
+        Toast.makeText(this, getResources().getString(R.string.route_request_error), Toast.LENGTH_LONG).show();
     }
+
+    @Override
+    public void showPorgressBar() {
+        prgBarSearch.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideProgressBar() {
+        prgBarSearch.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void showSearchBox() {
+        srchRouteBox.setVisibility(View.VISIBLE);
+    }
+
+
 }

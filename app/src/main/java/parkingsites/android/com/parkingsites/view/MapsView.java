@@ -5,7 +5,10 @@ package parkingsites.android.com.parkingsites.view;
  */
 
 public interface MapsView {
-    void OnParkingErrorMessage();
-    void OnRouteFetchError();
+    void OnParksErrorMessage();
+    void OnRouteFetchErrorMessage();
+    void showPorgressBar();
+    void hideProgressBar();
+    void showSearchBox();
 }
 
