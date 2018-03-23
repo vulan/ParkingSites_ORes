@@ -52,6 +52,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
     }
 
+    public void clearSearchHistory(View view){
+        txtFrom.setText("");
+        txtTo.setText("");
+        mMapPresenter.loadParkingSites();
+    }
 
     /**
      * Manipulates the map once available.

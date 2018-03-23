@@ -14,6 +14,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +25,18 @@ import parkingsites.android.com.parkingsites.engine.ParkingSitesEngine;
 import parkingsites.android.com.parkingsites.engine.RouteInformationEngine;
 import parkingsites.android.com.parkingsites.model.Location;
 import parkingsites.android.com.parkingsites.model.ParkingSite;
+import parkingsites.android.com.parkingsites.model.Polyline;
 import parkingsites.android.com.parkingsites.model.Route;
 import parkingsites.android.com.parkingsites.view.MapsView;
 
 import static com.google.maps.android.PolyUtil.decode;
 
 public class MapsPresenter {
-    private final int CAMERA_ZOOM = 15, ROUTE_WIDTH = 10;
+    private final int CAMERA_ZOOM = 15, ROUTE_WIDTH = 10, PARK_CORIDOR = 100;
     private MapsView mMapsView;
     private GoogleMap mMap;
     private List<ParkingSite> mParkingSites;
+    private List<ParkingSite> nearParkSites;
     private List<Route> mRouteInfo;
     private Map<Route, String> mRouteValues;
 
@@ -61,23 +64,28 @@ public class MapsPresenter {
         });
     }
 
-    private void loadParkingSites(){
+    public void loadParkingSites() {
         mParkingSites = ParkingSitesEngine.getEngineInstance().getParkingSite();
 
-        if (mParkingSites.size() > 0 && mParkingSites != null){
-            showFreeParkingsSites();
+        if (mParkingSites.size() > 0 && mParkingSites != null) {
+            showParkingsSites(mParkingSites);
         }
     }
 
-    public void getRouteInfo(String from, String to, String key, Boolean alternatives){
+    public void getRouteInfo(String from, String to, String key, Boolean alternatives) {
         mMapsView.showPorgressBar();
         RouteInformationEngine.getRouteEngineInstance().loadRouteInformation(new RouteInformationEngine.onRouteRequestResponse() {
             @Override
             public void RouteInfoSuccess() {
+                mMap.clear();
                 List<Route> routes = RouteInformationEngine.getRouteEngineInstance().getRouteInfo();
-                showRouteInfo(routes);
+                if (showRouteInfo(routes)) {
+                    nearParkSites = showNearCoridorParkingSites(routes);
+                    showParkingsSites(nearParkSites);
+                }
                 mMapsView.hideProgressBar();
             }
+
             @Override
             public void RouteInfoError() {
                 mMapsView.hideProgressBar();
@@ -86,10 +94,27 @@ public class MapsPresenter {
         }, from, to, key, true);
     }
 
-    private void showRouteInfo(List<Route> routes){
+    private List<ParkingSite> showNearCoridorParkingSites(List<Route> routes) {
+        List<ParkingSite> nearParkingSites = new ArrayList<>();
+        for (ParkingSite park : mParkingSites) {
+            LatLng latlng = new LatLng(park.getLocation().getLatitude(), park.getLocation().getLongitude());
+            for (Route route : routes) {
+                String polyline = route.getOverviewPolyline().getPoints();
+                List<LatLng> listLatLng = decode(polyline);
+                if (PolyUtil.isLocationOnPath(latlng, listLatLng, true, PARK_CORIDOR)) {
+                    nearParkingSites.add(park);
+                }
+            }
+        }
+
+        return nearParkingSites;
+
+    }
+
+    private boolean showRouteInfo(List<Route> routes) {
         List<LatLng> latlngs = new ArrayList<>();
-        if (!routes.isEmpty() && routes.size() > 0){
-            for(Route route: routes){
+        if (!routes.isEmpty() && routes.size() > 0) {
+            for (Route route : routes) {
                 String polyLine = route.getOverviewPolyline().getPoints();
                 latlngs = decode(polyLine);
 
@@ -106,12 +131,15 @@ public class MapsPresenter {
                     .build();
 
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }else{
+            return true;
+
+        } else {
             mMapsView.OnRouteFetchErrorMessage();
+            return false;
         }
     }
 
-    private void showFreeParkingsSites(){
+    private void showParkingsSites(List<ParkingSite> mParkingSites) {
         for (ParkingSite parking : mParkingSites) {
             Location location = parking.getLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
