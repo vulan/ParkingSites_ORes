@@ -49,7 +49,7 @@ public class AppModule {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://138.68.16.98/")//10.0.2.2
+                .baseUrl("http://138.68.16.98/")//10.0.2.2 timeout
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
