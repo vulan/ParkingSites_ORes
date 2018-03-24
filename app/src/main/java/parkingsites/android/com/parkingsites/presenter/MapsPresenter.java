@@ -39,10 +39,10 @@ public class MapsPresenter {
     private List<ParkingSite> nearParkSites;
     private List<Route> mRouteInfo;
     private Map<Route, String> mRouteValues;
-    private List<String> routeDetails = new ArrayList<>();
+    private List<String> routeDetails;
 
     public MapsPresenter() {
-        Log.d("TAG", "Constructor Presenter");
+
     }
 
     public void getParkingSites(MapsView view, GoogleMap mMap) {
@@ -54,7 +54,7 @@ public class MapsPresenter {
             public void onSuccessRequest() {
                 loadParkingSites();
                 mMapsView.hideProgressBar();
-                mMapsView.showSearchBox();
+                mMapsView.showSearchBox();//show search destinations, only if parkings available
             }
 
             @Override
@@ -76,14 +76,14 @@ public class MapsPresenter {
 
     public void getRouteInfo(String from, String to, String key, Boolean alternatives) {
         mMapsView.showPorgressBar();
+        mMap.clear();
         RouteInformationEngine.getRouteEngineInstance().loadRouteInformation(new RouteInformationEngine.onRouteRequestResponse() {
             @Override
             public void RouteInfoSuccess() {
-                mMap.clear();
-                List<Route> routes = RouteInformationEngine.getRouteEngineInstance().getRouteInfo();
-                if (showRouteInfo(routes)) {
-                    nearParkSites = showNearCoridorParkingSites(routes);
-                    showParkingsSites(nearParkSites);
+                mRouteInfo = RouteInformationEngine.getRouteEngineInstance().getRouteInfo();
+                if (showRouteInfo(mRouteInfo)) {//if info route found, get info for 100m corridor
+                    nearParkSites = showNearCorridorParkingSites(mRouteInfo);
+                    showParkingsSites(nearParkSites);//show near parking sites
                     mMapsView.showRouteDetails(routeDetails);
                 }
                 mMapsView.hideProgressBar();
@@ -97,7 +97,7 @@ public class MapsPresenter {
         }, from, to, key, true);
     }
 
-    private List<ParkingSite> showNearCoridorParkingSites(List<Route> routes) {
+    private List<ParkingSite> showNearCorridorParkingSites(List<Route> routes) {
         List<ParkingSite> nearParkingSites = new ArrayList<>();
         for (ParkingSite park : mParkingSites) {
             LatLng latlng = new LatLng(park.getLocation().getLatitude(), park.getLocation().getLongitude());
@@ -117,19 +117,25 @@ public class MapsPresenter {
     private boolean showRouteInfo(List<Route> routes) {
         List<LatLng> latlngs = new ArrayList<>();
         mRouteValues = new HashMap<>();
+        routeDetails = new ArrayList<>();
         String routeDuration, routeDistance;
         if (!routes.isEmpty() && routes.size() > 0) {
             int count = 0;
-            List<LatLng> fastRoute = new ArrayList<>();
             for (Route route : routes) {
                 String polyLine = route.getOverviewPolyline().getPoints();
                 latlngs = decode(polyLine);
                 routeDistance = route.getLegs().get(0).getDistance().getText();
                 routeDuration = getDurationInfo(route.getLegs().get(0).getDuration().getText());
-                routeDetails.add(routeDuration + " " + routeDistance);
-                if (count == 0) {
-                    fastRoute = latlngs;
-                } else {
+                String infos = routeDuration + " " + routeDistance;
+                routeDetails.add(infos);
+                mRouteValues.put(route, infos);
+                if (count == 0) {//fastest route, green color
+                    mMap.addPolyline(new PolylineOptions()
+                            .addAll(latlngs)
+                            .width(ROUTE_WIDTH)
+                            .color(Color.GREEN)
+                            .geodesic(true));
+                } else {//alternative routes, gray colors
                     mMap.addPolyline(new PolylineOptions()
                             .addAll(latlngs)
                             .width(ROUTE_WIDTH)
@@ -139,13 +145,7 @@ public class MapsPresenter {
                 count++;
             }
 
-            mMap.addPolyline(new PolylineOptions()
-                    .addAll(fastRoute)
-                    .width(ROUTE_WIDTH)
-                    .color(Color.GREEN)
-                    .geodesic(true));
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
+            CameraPosition cameraPosition = new CameraPosition.Builder()//position camera on first route
                     .target(latlngs.get(0))
                     .zoom(CAMERA_ZOOM)
                     .build();
@@ -193,5 +193,79 @@ public class MapsPresenter {
                     .build();
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
+    }
+
+    public void highlightPickedRoute(int routeIndx) {
+        String details = "";
+        mMap.clear();
+        List<Route> pickedRoute = new ArrayList<>();
+        Boolean addRoute = false;
+
+        switch (routeIndx) {
+            case 1:
+                //first route chosen
+                if (routeDetails.size() > 0) {
+                    details = routeDetails.get(0);
+                    addRoute = true;
+                }
+                break;
+            case 2:
+                //second route chosen
+                if (routeDetails.size() > 1) {
+                    details = routeDetails.get(1);
+                    addRoute = true;
+                }
+                break;
+            case 3:
+                //third route chosen
+                if (routeDetails.size() > 2) {
+                    details = routeDetails.get(2);
+                    addRoute = true;
+                }
+                break;
+        }
+        if (addRoute) {
+            for (Map.Entry<Route, String> route : mRouteValues.entrySet()) {
+                if (route.getValue().equals(details)) {
+                    pickedRoute.add(route.getKey());
+                }
+            }
+
+            redrawRoutes(pickedRoute);
+        }
+    }
+
+    private void redrawRoutes(List<Route> pickedRoute) {
+
+        for (Route route : mRouteInfo) {
+            if (route.equals(pickedRoute.get(0))) {
+                List<LatLng> listLatLngSelectedRoute = decode(pickedRoute.get(0).getOverviewPolyline().getPoints());
+                mMap.addPolyline(new PolylineOptions()
+                        .addAll(listLatLngSelectedRoute)
+                        .width(ROUTE_WIDTH)
+                        .color(Color.GREEN)
+                        .geodesic(true));
+            } else {
+                List<LatLng> listLatLngSelectedRoute = decode(route.getOverviewPolyline().getPoints());
+                mMap.addPolyline(new PolylineOptions()
+                        .addAll(listLatLngSelectedRoute)
+                        .width(ROUTE_WIDTH)
+                        .color(Color.GRAY)
+                        .geodesic(true));
+            }
+        }
+
+        if (!mParkingSites.isEmpty() && mParkingSites != null) {
+            List<ParkingSite> nearParkingSites = showNearCorridorParkingSites(pickedRoute);
+            showParkingsSites(nearParkingSites);
+        }
+
+    }
+
+    public boolean checkInputText(String txtFrom, String txtTo) {
+        if (!txtFrom.isEmpty() && !txtTo.isEmpty())
+            return true;
+        else
+            return false;
     }
 }

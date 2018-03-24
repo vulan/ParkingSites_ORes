@@ -95,12 +95,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case 1:
                 btnPath1.setVisibility(View.VISIBLE);
                 btnPath1.setText(details.get(0).toString());
+                btnPath2.setVisibility(View.INVISIBLE);
+                btnPath3.setVisibility(View.INVISIBLE);
                 break;
             case 2:
                 btnPath1.setVisibility(View.VISIBLE);
                 btnPath1.setText(details.get(0).toString());
                 btnPath2.setVisibility(View.VISIBLE);
                 btnPath2.setText(details.get(1).toString());
+                btnPath3.setVisibility(View.INVISIBLE);
                 break;
             case 3:
                 btnPath1.setVisibility(View.VISIBLE);
@@ -127,7 +130,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getRouteInfo(View view) {
-        mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
+        if (mMapPresenter.checkInputText(txtFrom.getText().toString(), txtTo.getText().toString())) {
+            mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
+            refreshControls();
+        }
+        else
+            Toast.makeText(this, getResources().getString(R.string.check_text), Toast.LENGTH_LONG).show();
+    }
+
+    private void refreshControls(){
+        btnPath1.setBackgroundColor(getResources().getColor(R.color.dark_green));
+        btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
+        btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+
+        btnPath1.setText("");
+        btnPath2.setText("");
+        btnPath3.setText("");
     }
 
     public void clearSearchHistory(View view) {
@@ -143,21 +161,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void path1(View view) {
-        btnPath1.setBackgroundColor(getResources().getColor(R.color.dark_green));
-        btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
-        btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+        if (!btnPath1.getText().toString().isEmpty()) {
+            btnPath1.setBackgroundColor(getResources().getColor(R.color.dark_green));
+            btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
+            btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+            mMapPresenter.highlightPickedRoute(1);
+        }
     }
 
     public void path2(View view) {
-        btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
-        btnPath2.setBackgroundColor(getResources().getColor(R.color.dark_green));
-        btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+        if (!btnPath2.getText().toString().isEmpty()) {
+            btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
+            btnPath2.setBackgroundColor(getResources().getColor(R.color.dark_green));
+            btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+            mMapPresenter.highlightPickedRoute(2);
+        }
     }
 
     public void path3(View view) {
-        btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
-        btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
-        btnPath3.setBackgroundColor(getResources().getColor(R.color.dark_green));
+        if (!btnPath1.getText().toString().isEmpty()) {
+            btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
+            btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
+            btnPath3.setBackgroundColor(getResources().getColor(R.color.dark_green));
+            mMapPresenter.highlightPickedRoute(3);
+        }
     }
 
 

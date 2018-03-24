@@ -5,4 +5,5 @@
     <string name="to">To</string>
     <string name="parking_request_error">Request error! No parking sites found!</string>
     <string name="route_request_error"> Request error! Could not get route information!</string>
+    <string name="check_text">Please fill both destinations!</string>
 </resources>
