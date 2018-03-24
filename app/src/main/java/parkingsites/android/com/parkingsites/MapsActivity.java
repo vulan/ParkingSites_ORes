@@ -9,11 +9,15 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
+import java.util.List;
+
 import javax.inject.Inject;
+
 import parkingsites.android.com.parkingsites.dagger.App;
 import parkingsites.android.com.parkingsites.presenter.MapsPresenter;
 import parkingsites.android.com.parkingsites.view.MapsView;
@@ -25,6 +29,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private EditText txtFrom, txtTo;
     private ConstraintLayout srchRouteBox;
     private ProgressBar prgBarSearch;
+    private Button btnPath1, btnPath2, btnPath3;
 
     @Inject
     MapsPresenter mMapPresenter;
@@ -34,28 +39,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        ((App)getApplication()).getAppComponent().inject(this);
+        ((App) getApplication()).getAppComponent().inject(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        txtFrom = (EditText) findViewById(R.id.txtFrom);
-        txtTo = (EditText) findViewById(R.id.txtTo);
-        btnRouteDirection = (Button)findViewById(R.id.btnRouteInfo);
-        srchRouteBox = findViewById(R.id.searchRouteBox);
-        prgBarSearch = findViewById(R.id.prgBarSearch);
-    }
-
-    public void getRouteInfo(View view){
-        mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
-    }
-
-    public void clearSearchHistory(View view){
-        txtFrom.setText("");
-        txtTo.setText("");
-        mMapPresenter.loadParkingSites();
+        initialize();
     }
 
     /**
@@ -97,6 +87,77 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void showSearchBox() {
         srchRouteBox.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void showRouteDetails(List<String> details) {
+        switch (details.size()) {
+            case 1:
+                btnPath1.setVisibility(View.VISIBLE);
+                btnPath1.setText(details.get(0).toString());
+                break;
+            case 2:
+                btnPath1.setVisibility(View.VISIBLE);
+                btnPath1.setText(details.get(0).toString());
+                btnPath2.setVisibility(View.VISIBLE);
+                btnPath2.setText(details.get(1).toString());
+                break;
+            case 3:
+                btnPath1.setVisibility(View.VISIBLE);
+                btnPath1.setText(details.get(0).toString());
+                btnPath2.setVisibility(View.VISIBLE);
+                btnPath2.setText(details.get(1).toString());
+                btnPath3.setVisibility(View.VISIBLE);
+                btnPath3.setText(details.get(2).toString());
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void initialize() {
+        txtFrom = (EditText) findViewById(R.id.txtFrom);
+        txtTo = (EditText) findViewById(R.id.txtTo);
+        btnRouteDirection = (Button) findViewById(R.id.btnRouteInfo);
+        srchRouteBox = findViewById(R.id.searchRouteBox);
+        prgBarSearch = findViewById(R.id.prgBarSearch);
+        btnPath1 = findViewById(R.id.btnPath1);
+        btnPath2 = findViewById(R.id.btnPath2);
+        btnPath3 = findViewById(R.id.btnPath3);
+    }
+
+    public void getRouteInfo(View view) {
+        mMapPresenter.getRouteInfo(txtFrom.getText().toString(), txtTo.getText().toString(), getResources().getString(R.string.google_maps_key), true);
+    }
+
+    public void clearSearchHistory(View view) {
+        txtFrom.setText("");
+        txtTo.setText("");
+        mMapPresenter.loadParkingSites();
+        btnPath1.setVisibility(View.INVISIBLE);
+        btnPath2.setVisibility(View.INVISIBLE);
+        btnPath3.setVisibility(View.INVISIBLE);
+        btnPath1.setText("");
+        btnPath2.setText("");
+        btnPath3.setText("");
+    }
+
+    public void path1(View view) {
+        btnPath1.setBackgroundColor(getResources().getColor(R.color.dark_green));
+        btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
+        btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+    }
+
+    public void path2(View view) {
+        btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
+        btnPath2.setBackgroundColor(getResources().getColor(R.color.dark_green));
+        btnPath3.setBackgroundColor(getResources().getColor(R.color.gray));
+    }
+
+    public void path3(View view) {
+        btnPath1.setBackgroundColor(getResources().getColor(R.color.gray));
+        btnPath2.setBackgroundColor(getResources().getColor(R.color.gray));
+        btnPath3.setBackgroundColor(getResources().getColor(R.color.dark_green));
     }
 
 

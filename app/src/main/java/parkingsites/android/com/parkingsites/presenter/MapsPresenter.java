@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import parkingsites.android.com.parkingsites.engine.ParkingSitesEngine;
 import parkingsites.android.com.parkingsites.engine.RouteInformationEngine;
 import parkingsites.android.com.parkingsites.model.Location;
 import parkingsites.android.com.parkingsites.model.ParkingSite;
-import parkingsites.android.com.parkingsites.model.Polyline;
 import parkingsites.android.com.parkingsites.model.Route;
 import parkingsites.android.com.parkingsites.view.MapsView;
 
@@ -39,6 +39,7 @@ public class MapsPresenter {
     private List<ParkingSite> nearParkSites;
     private List<Route> mRouteInfo;
     private Map<Route, String> mRouteValues;
+    private List<String> routeDetails = new ArrayList<>();
 
     public MapsPresenter() {
         Log.d("TAG", "Constructor Presenter");
@@ -65,6 +66,7 @@ public class MapsPresenter {
     }
 
     public void loadParkingSites() {
+        mMap.clear();
         mParkingSites = ParkingSitesEngine.getEngineInstance().getParkingSite();
 
         if (mParkingSites.size() > 0 && mParkingSites != null) {
@@ -82,6 +84,7 @@ public class MapsPresenter {
                 if (showRouteInfo(routes)) {
                     nearParkSites = showNearCoridorParkingSites(routes);
                     showParkingsSites(nearParkSites);
+                    mMapsView.showRouteDetails(routeDetails);
                 }
                 mMapsView.hideProgressBar();
             }
@@ -113,17 +116,34 @@ public class MapsPresenter {
 
     private boolean showRouteInfo(List<Route> routes) {
         List<LatLng> latlngs = new ArrayList<>();
+        mRouteValues = new HashMap<>();
+        String routeDuration, routeDistance;
         if (!routes.isEmpty() && routes.size() > 0) {
+            int count = 0;
+            List<LatLng> fastRoute = new ArrayList<>();
             for (Route route : routes) {
                 String polyLine = route.getOverviewPolyline().getPoints();
                 latlngs = decode(polyLine);
-
-                mMap.addPolyline(new PolylineOptions()
-                        .addAll(latlngs)
-                        .width(ROUTE_WIDTH)
-                        .color(Color.GREEN)
-                        .geodesic(true));
+                routeDistance = route.getLegs().get(0).getDistance().getText();
+                routeDuration = getDurationInfo(route.getLegs().get(0).getDuration().getText());
+                routeDetails.add(routeDuration + " " + routeDistance);
+                if (count == 0) {
+                    fastRoute = latlngs;
+                } else {
+                    mMap.addPolyline(new PolylineOptions()
+                            .addAll(latlngs)
+                            .width(ROUTE_WIDTH)
+                            .color(Color.GRAY)
+                            .geodesic(true));
+                }
+                count++;
             }
+
+            mMap.addPolyline(new PolylineOptions()
+                    .addAll(fastRoute)
+                    .width(ROUTE_WIDTH)
+                    .color(Color.GREEN)
+                    .geodesic(true));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latlngs.get(0))
@@ -137,6 +157,27 @@ public class MapsPresenter {
             mMapsView.OnRouteFetchErrorMessage();
             return false;
         }
+    }
+
+    private String getDurationInfo(String duration) { //convert format (ex:2 hours 30 minutes to 02:30h)
+        String[] splitDuration = duration.split(" ");
+        String stringFormat = "";
+        if (splitDuration.length == 2) {
+            if (splitDuration[0].length() == 1) {
+                stringFormat = "0" + splitDuration[0];
+            }
+            stringFormat = "00:" + stringFormat + "h";
+        } else {
+            if (splitDuration[1].equals("day")) {
+                stringFormat = splitDuration[0] + "d " + splitDuration[2] + "h";
+            } else {
+                if (splitDuration[2].length() == 1) {
+                    stringFormat = "0" + splitDuration[2];
+                }
+                stringFormat = splitDuration[0] + ":" + stringFormat + "h";
+            }
+        }
+        return stringFormat;
     }
 
     private void showParkingsSites(List<ParkingSite> mParkingSites) {

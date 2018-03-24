@@ -10,7 +10,6 @@ import parkingsites.android.com.parkingsites.service.ApiService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.GET;
 
 /**
  * Created by Nora on 20-Mar-18.
