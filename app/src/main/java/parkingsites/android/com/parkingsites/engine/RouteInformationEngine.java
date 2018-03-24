@@ -23,7 +23,6 @@ public class RouteInformationEngine {
 
     public interface onRouteRequestResponse {
         void RouteInfoSuccess();
-
         void RouteInfoError();
     }
 

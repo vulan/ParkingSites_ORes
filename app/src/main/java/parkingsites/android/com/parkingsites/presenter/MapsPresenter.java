@@ -5,7 +5,6 @@ package parkingsites.android.com.parkingsites.presenter;
  */
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -32,7 +31,7 @@ import parkingsites.android.com.parkingsites.view.MapsView;
 import static com.google.maps.android.PolyUtil.decode;
 
 public class MapsPresenter {
-    private final int CAMERA_ZOOM = 15, ROUTE_WIDTH = 10, PARK_CORIDOR = 100;
+    private final int MAP_CAMERA_ZOOM = 15, ROUTE_WIDTH = 10, PARK_CORRIDOR = 100;
     private MapsView mMapsView;
     private GoogleMap mMap;
     private List<ParkingSite> mParkingSites;
@@ -48,6 +47,7 @@ public class MapsPresenter {
     public void getParkingSites(MapsView view, GoogleMap mMap) {
         this.mMapsView = view;
         this.mMap = mMap;
+
         mMapsView.showPorgressBar();
         ParkingSitesEngine.getEngineInstance().loadParkingSites(new ParkingSitesEngine.OnParkRequestResponse() {
             @Override
@@ -82,7 +82,7 @@ public class MapsPresenter {
             public void RouteInfoSuccess() {
                 mRouteInfo = RouteInformationEngine.getRouteEngineInstance().getRouteInfo();
                 if (showRouteInfo(mRouteInfo)) {//if info route found, get info for 100m corridor
-                    nearParkSites = showNearCorridorParkingSites(mRouteInfo);
+                    nearParkSites = showOnCorridorParkingSites(mRouteInfo);
                     showParkingsSites(nearParkSites);//show near parking sites
                     mMapsView.showRouteDetails(routeDetails);
                 }
@@ -97,14 +97,14 @@ public class MapsPresenter {
         }, from, to, key, true);
     }
 
-    private List<ParkingSite> showNearCorridorParkingSites(List<Route> routes) {
+    private List<ParkingSite> showOnCorridorParkingSites(List<Route> routes) {
         List<ParkingSite> nearParkingSites = new ArrayList<>();
         for (ParkingSite park : mParkingSites) {
             LatLng latlng = new LatLng(park.getLocation().getLatitude(), park.getLocation().getLongitude());
             for (Route route : routes) {
                 String polyline = route.getOverviewPolyline().getPoints();
                 List<LatLng> listLatLng = decode(polyline);
-                if (PolyUtil.isLocationOnPath(latlng, listLatLng, true, PARK_CORIDOR)) {
+                if (PolyUtil.isLocationOnPath(latlng, listLatLng, true, PARK_CORRIDOR)) {
                     nearParkingSites.add(park);
                 }
             }
@@ -147,7 +147,7 @@ public class MapsPresenter {
 
             CameraPosition cameraPosition = new CameraPosition.Builder()//position camera on first route
                     .target(latlngs.get(0))
-                    .zoom(CAMERA_ZOOM)
+                    .zoom(MAP_CAMERA_ZOOM)
                     .build();
 
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -164,17 +164,17 @@ public class MapsPresenter {
         String stringFormat = "";
         if (splitDuration.length == 2) {
             if (splitDuration[0].length() == 1) {
-                stringFormat = "0" + splitDuration[0];
+                splitDuration[0] = "0" + splitDuration[0];
             }
-            stringFormat = "00:" + stringFormat + "h";
+            stringFormat = "00:" + splitDuration[0] + "h";
         } else {
             if (splitDuration[1].equals("day")) {
                 stringFormat = splitDuration[0] + "d " + splitDuration[2] + "h";
             } else {
                 if (splitDuration[2].length() == 1) {
-                    stringFormat = "0" + splitDuration[2];
+                    splitDuration[2] = "0" + splitDuration[2];
                 }
-                stringFormat = splitDuration[0] + ":" + stringFormat + "h";
+                stringFormat = splitDuration[0] + ":" + splitDuration[2] + "h";
             }
         }
         return stringFormat;
@@ -189,36 +189,36 @@ public class MapsPresenter {
                     .position(latLng).title(parking.getTitle()));
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
-                    .zoom(CAMERA_ZOOM)
+                    .zoom(MAP_CAMERA_ZOOM)
                     .build();
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
-    public void highlightPickedRoute(int routeIndx) {
+    public void highlightPickedRoute(int routeIndex) {
         String details = "";
         mMap.clear();
         List<Route> pickedRoute = new ArrayList<>();
         Boolean addRoute = false;
 
-        switch (routeIndx) {
+        switch (routeIndex) {
             case 1:
                 //first route chosen
-                if (routeDetails.size() > 0) {
+                if (routeDetails.size() > 0) {//avoid out of bound index exc
                     details = routeDetails.get(0);
                     addRoute = true;
                 }
                 break;
             case 2:
                 //second route chosen
-                if (routeDetails.size() > 1) {
+                if (routeDetails.size() > 1) {//avoid out of bound index exc
                     details = routeDetails.get(1);
                     addRoute = true;
                 }
                 break;
             case 3:
                 //third route chosen
-                if (routeDetails.size() > 2) {
+                if (routeDetails.size() > 2) {//avoid out of bound index exc
                     details = routeDetails.get(2);
                     addRoute = true;
                 }
@@ -256,7 +256,7 @@ public class MapsPresenter {
         }
 
         if (!mParkingSites.isEmpty() && mParkingSites != null) {
-            List<ParkingSite> nearParkingSites = showNearCorridorParkingSites(pickedRoute);
+            List<ParkingSite> nearParkingSites = showOnCorridorParkingSites(pickedRoute);
             showParkingsSites(nearParkingSites);
         }
 

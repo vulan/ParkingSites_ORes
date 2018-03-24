@@ -63,7 +63,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMapPresenter.getParkingSites(this, mMap);
     }
 
-
     @Override
     public void OnParksErrorMessage() {
         Toast.makeText(this, getResources().getString(R.string.parking_request_error), Toast.LENGTH_LONG).show();
